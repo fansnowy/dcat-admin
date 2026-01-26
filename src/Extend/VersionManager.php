@@ -307,7 +307,10 @@ class VersionManager
 
     protected function applyDatabaseScript($name, $version, $script)
     {
-        $updateFile = $this->manager->path($name, 'updates/'.$script);
+        // Validate script name to prevent path traversal
+        $script = $this->validateScriptName($script);
+
+        $updateFile = $this->manager->path($name, 'updates/' . $script);
 
         if (! is_file($updateFile)) {
             $this->note(sprintf('- <error>v%s:  Migration file "%s" not found</error>', $version, $script));
@@ -340,7 +343,10 @@ class VersionManager
 
     protected function removeDatabaseScript($name, $version, $script)
     {
-        $updateFile = $this->manager->path($name, 'updates/'.$script);
+        // Validate script name to prevent path traversal
+        $script = $this->validateScriptName($script);
+
+        $updateFile = $this->manager->path($name, 'updates/' . $script);
 
         $this->updater->packDown($this->resolveUpdater($name, $updateFile), function () use ($name, $version, $script) {
             ExtensionHistory::query()
@@ -403,7 +409,7 @@ class VersionManager
     {
         $details = (array) $details;
 
-        $fileNamePattern = "/^[a-z0-9\_\-\.\/\\\]+\.php$/i";
+        $fileNamePattern = "/^[a-z0-9_\-]+(?:\.[a-z0-9_\-]+)*\.php$/i";
 
         $comments = array_values(array_filter($details, function ($detail) use ($fileNamePattern) {
             return ! preg_match($fileNamePattern, $detail);
@@ -414,6 +420,37 @@ class VersionManager
         }));
 
         return [$comments, $scripts];
+    }
+
+    /**
+     * Validate script name to prevent path traversal attacks.
+     *
+     * @param  string  $script
+     * @return string
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function validateScriptName($script)
+    {
+        $script = basename($script);
+
+        if (
+            strpos($script, '..') !== false ||
+            strpos($script, '/') !== false ||
+            strpos($script, '\\') !== false
+        ) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid migration script name "%s": path traversal is not allowed.', $script)
+            );
+        }
+
+        if (!preg_match('/^[a-z0-9_\-]+(?:\.[a-z0-9_\-]+)*\.php$/i', $script)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid migration script name "%s": only alphanumeric, underscore, and hyphen characters are allowed.', $script)
+            );
+        }
+
+        return $script;
     }
 
     public function getCurrentVersion($extension): string
