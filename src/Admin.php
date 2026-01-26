@@ -580,16 +580,13 @@ class Admin
         if (config('admin.auth.enable', true)) {
             app('router')->group($attributes, function ($router) {
                 /* @var \Illuminate\Routing\Router $router */
-                $router->namespace('Dcat\Admin\Http\Controllers')->group(function ($router) {
-                    /* @var \Illuminate\Routing\Router $router */
-                    $router->resource('auth/users', 'UserController');
-                    $router->resource('auth/menu', 'MenuController', ['except' => ['create', 'show']]);
+                $router->resource('auth/users', 'Dcat\Admin\Http\Controllers\UserController');
+                $router->resource('auth/menu', 'Dcat\Admin\Http\Controllers\MenuController', ['except' => ['create', 'show']]);
 
-                    if (config('admin.permission.enable')) {
-                        $router->resource('auth/roles', 'RoleController');
-                        $router->resource('auth/permissions', 'PermissionController');
-                    }
-                });
+                if (config('admin.permission.enable')) {
+                    $router->resource('auth/roles', 'Dcat\Admin\Http\Controllers\RoleController');
+                    $router->resource('auth/permissions', 'Dcat\Admin\Http\Controllers\PermissionController');
+                }
 
                 $router->resource('auth/extensions', 'Dcat\Admin\Http\Controllers\ExtensionController', ['only' => ['index', 'store', 'update']]);
 
@@ -622,14 +619,14 @@ class Admin
 
         app('router')->group($attributes, function ($router) {
             /* @var \Illuminate\Routing\Router $router */
-            $router->post('action', 'HandleActionController@handle')->name('action');
-            $router->post('form', 'HandleFormController@handle')->name('form');
-            $router->post('form/upload', 'HandleFormController@uploadFile')->name('form.upload');
-            $router->post('form/destroy-file', 'HandleFormController@destroyFile')->name('form.destroy-file');
-            $router->post('value', 'ValueController@handle')->name('value');
-            $router->get('render', 'RenderableController@handle')->name('render');
-            $router->post('tinymce/upload', 'TinymceController@upload')->name('tinymce.upload');
-            $router->post('editor-md/upload', 'EditorMDController@upload')->name('editor-md.upload');
+            $router->post('action', 'Dcat\Admin\Http\Controllers\HandleActionController@handle')->name('action');
+            $router->post('form', 'Dcat\Admin\Http\Controllers\HandleFormController@handle')->name('form');
+            $router->post('form/upload', 'Dcat\Admin\Http\Controllers\HandleFormController@uploadFile')->name('form.upload');
+            $router->post('form/destroy-file', 'Dcat\Admin\Http\Controllers\HandleFormController@destroyFile')->name('form.destroy-file');
+            $router->post('value', 'Dcat\Admin\Http\Controllers\ValueController@handle')->name('value');
+            $router->get('render', 'Dcat\Admin\Http\Controllers\RenderableController@handle')->name('render');
+            $router->post('tinymce/upload', 'Dcat\Admin\Http\Controllers\TinymceController@upload')->name('tinymce.upload');
+            $router->post('editor-md/upload', 'Dcat\Admin\Http\Controllers\EditorMDController@upload')->name('editor-md.upload');
         });
     }
 
